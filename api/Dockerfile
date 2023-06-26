@@ -5,7 +5,7 @@ ENV CELERY_BROKER_URL redis://redis:6379/0
 ENV CELERY_RESULT_BACKEND redis://redis:6379/0
 ENV C_FORCE_ROOT true
 
-RUN apk add --no-cache libev-dev==4.25-r0 build-base==0.5-r1
+RUN apk add --no-cache libev-dev==4.33-r0 build-base==0.5-r3
 
 COPY requirements.txt /var/tmp/
 RUN pip install six==1.11.0

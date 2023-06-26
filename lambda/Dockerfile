@@ -9,7 +9,7 @@ RUN yum update -y && \
     yum -y install vim && \
     yum -y install wget && \
     yum -y install gcc && \
-    yum -y install python36
+    yum -y install python3
 
 # Set locale
 ENV LC_ALL=en_US.utf8

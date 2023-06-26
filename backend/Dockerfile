@@ -2,7 +2,7 @@ FROM python:3.8.14-alpine
 LABEL maintainer="Mutation Maker https://github.com/Merck/Mutation_Maker"
 
 RUN apk add --no-cache \
-  build-base==0.5-r1 \
+  build-base==0.5-r3 \
   ca-certificates \
   curl
 
