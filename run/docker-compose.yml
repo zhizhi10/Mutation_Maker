@@ -1,0 +1,79 @@
+version: '3.4'
+services:
+  # API provides an API that schedules and monitors tasks
+  api:
+    image: seapapa/mutation_maker:api_v0.1
+    restart: always
+    ports:
+      - '8000:8000'
+    depends_on:
+      - redis
+      - worker
+    networks:
+      - local
+  # Worker provides a Celery worker that processes tasks from the Redis queue
+  worker:
+    image: seapapa/mutation_maker:worker_v0.1
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - RUN_LAMBDA_DOCKER=1
+      - LAMBDA_FN_NAME
+    depends_on:
+      - redis
+      - lambda
+    networks:
+      - local
+  # Redis provides Redis in-memory database that serves as a queue for Celery tasks
+  redis:
+    image: redis:6-alpine
+    ports:
+      - '6379'
+    networks:
+      - local
+  # Frontend provides the frontend React server that communicates with the API
+  # It is exposed only through the Webserver service
+  frontend:
+    image: seapapa/mutation_maker:frontend_v0.1
+    depends_on:
+      - api
+    networks:
+      - local
+  # Webserver is the main entry point for the user, proxying "/v1" requests to the API and all remaining requests to the frontend
+  webserver:
+    image: seapapa/mutation_maker:webserver_v0.1
+    ports:
+      - '3000:3000'
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - local
+  # Lambda is a container for local AWS Lambda function execution by SAM CLI: https://github.com/awslabs/aws-sam-cli
+  lambda:
+    image: seapapa/mutation_maker:lambda_v0.1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - ./lambda:/lambda
+    environment:
+      - SAM_CLI_TELEMETRY=0
+    ports:
+      - '3001'
+    command: sam local start-lambda --docker-volume-basedir "$PWD/lambda" --skip-pull-image --host 0.0.0.0
+    networks:
+      - local
+# Monitor provides a GUI for inspecting the Celery task queue
+#  monitor:
+#    build:
+#      context: ./backend
+#      dockerfile: Dockerfile
+#    ports:
+#      - "5555:5555"
+#    entrypoint: flower
+#    command:  -A tasks --port=5555 --broker=redis://redis:6379/0
+#    depends_on:
+#      - redis
+networks:
+  local:
+
